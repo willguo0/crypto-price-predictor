@@ -128,7 +128,7 @@ def main():
     for crypto, data in crypto_data.items():
         print("Training " + crypto)
         p = train(model, data, None)
-        print(p)
+        print(data)
     
 
 
