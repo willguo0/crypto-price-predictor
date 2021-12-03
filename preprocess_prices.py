@@ -39,10 +39,11 @@ def get_data(data_file):
     volume_change = np.asarray(volume_change)
     return normalize(percent_change), normalize(log_market_cap), normalize(volume_change)
 
+
 def normalize(array):
     return (array - np.mean(array)) / np.std(array)
 
-price_change, log_market_cap, volume_change = get_data("./data/ada-usd-max.csv")
-print(price_change)
+# price_change, log_market_cap, volume_change = get_data("./data/ada-usd-max.csv")
+# print(price_change)
 
     
