@@ -8,7 +8,7 @@ def get_data(data_file):
     Read and parse the train line by line, then breaks up the line into price, market cap and total volume.
 
     :param data_file: Path to the training file.
-    :return: list of price(percent change), market cap(log scale) and total volume(percent change)
+    :return: list of price(percent change), market cap(log scale) and total volume(percent change) and name
     """
     # TODO: load and concatenate training data from training file.
     with open(data_file, 'r') as csvfile:
@@ -19,6 +19,8 @@ def get_data(data_file):
             prices.append(row[1])
             market_cap.append(row[2])
             volume.append(row[3])
+    data_file = data_file[7:]
+    name = data_file.split("-",1)[0]
     prices = prices[1:]
     market_cap = market_cap[1:]
     volume = volume[1:]

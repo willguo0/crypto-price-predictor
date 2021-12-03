@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 from preprocess_prices import get_data
+import os
 
 class Model(tf.keras.Model):
     def __init__(self):
@@ -110,18 +111,22 @@ def main():
     '''
 
     # Read in CIFAR10 data
-    train_inputs, train_labels = get_data('../../data/train', 3, 5)
-    test_inputs, test_labels = get_data('../../data/test', 3, 5)
+    train_inputs, train_labels = get_data('./data/ada-usd-max.csv')
+    
+    directory = './data'
+    crypto_data = {}
+    for filename in os.listdir(directory):
+        f = os.path.join(directory, filename)
+        # checking if it is a file
+        if os.path.isfile(f):
+            
+           get_data(f)
+        # Initialized model
+    # model = Model()
 
-    # Initialized model
-    model = Model()
-
-    # Trains model
-    for _ in range(model.num_epochs):
-        train(model, train_inputs, train_labels)
-
-    # Tests the accuracy
-    print("Test accuracy: " + str(np.round(test(model, test_inputs, test_labels).numpy() * 100, decimals=2)) + "%")
+    # # Trains model
+    # for _ in range(model.num_epochs):
+    #     train(model, train_inputs, train_labels)
 
 
 if __name__ == '__main__':
