@@ -37,7 +37,7 @@ def get_data(data_file):
     market_cap = np.asarray(market_cap)
     log_market_cap = np.log(market_cap)
     volume_change = np.asarray(volume_change)
-    return normalize(percent_change), normalize(log_market_cap), normalize(volume_change)
+    return np.row_stack([normalize(percent_change), normalize(log_market_cap), normalize(volume_change)])
 
 
 def normalize(array):
