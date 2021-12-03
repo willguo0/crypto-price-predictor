@@ -15,6 +15,8 @@ class Model(tf.keras.Model):
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
 
         # Initialize all trainable parameters
+        self.dense1 = tf.keras.layers.Dense(16)
+        self.dense2 = tf.keras.layers.Dense(1)
         self.gru = tf.keras.layers.GRU(64, return_sequences=True, return_state=False)
     
 
@@ -22,12 +24,13 @@ class Model(tf.keras.Model):
         """
         Runs a forward pass on an input batch of time series data for a cryptocurrency.
         
-        :param inputs:
+        :param inputs: shape [window_size, 3]
         :param initial_state:
         :return: 
         """
         
-        return self.gru(inputs, initial_state=initial_state)
+        fully_connected_output = tf.squeeze(self.dense2(self.dense1(inputs)))
+        return self.gru(fully_connected_output, initial_state=initial_state)
 
 
     def loss(self, predictions, labels):
