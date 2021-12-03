@@ -22,19 +22,17 @@ def get_data(data_file):
     data_file = data_file[7:]
     name = data_file.split("-",1)[0]
     prices = prices[1:]
-    market_cap = market_cap[1:]
+    market_cap = market_cap[2:]
     volume = volume[1:]
     prices = list(map(float, prices))
     percent_change = []
     for i in range(len(prices) - 1):
         percent_change.append((prices[i + 1] - prices[i])/prices[i])
-
     market_cap = list(map(float, market_cap))
     volume = list(map(float, volume))
     volume_change = []
     for i in range(len(volume) - 1):
         volume_change.append((volume[i + 1] - volume[i])/volume[i])
-
     percent_change = np.asarray(percent_change)
     market_cap = np.asarray(market_cap)
     log_market_cap = np.log(market_cap)

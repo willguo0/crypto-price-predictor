@@ -118,15 +118,18 @@ def main():
     for filename in os.listdir(directory):
         f = os.path.join(directory, filename)
         # checking if it is a file
-        if os.path.isfile(f):
-            
-           get_data(f)
+        if os.path.isfile(f): 
+           data, name = get_data(f)
+           crypto_data[name] = data
         # Initialized model
-    # model = Model()
+    model = Model()
 
-    # # Trains model
-    # for _ in range(model.num_epochs):
-    #     train(model, train_inputs, train_labels)
+    # Trains model
+    for crypto, data in crypto_data.items():
+        print("Training " + crypto)
+        p = train(model, data, None)
+        print(p)
+    
 
 
 if __name__ == '__main__':
