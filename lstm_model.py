@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 from preprocess_prices import get_data
+from scipy.stats import binom
 import random
 import os
 
@@ -11,18 +12,24 @@ class Model(tf.keras.Model):
         self.window_size = 15
         self.window_shift = 1
         self.batch_size = 30
+        self.num_lstm_units = 64
 
         # Initialize all hyperparameters
-        self.learning_rate = 0.005
-        self.num_epochs = 10
+        self.learning_rate = 0.0008
+        self.num_epochs = 25
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate)
 
         # Initialize all trainable parameters
-        self.dense1 = tf.keras.layers.Dense(16)
+        self.dense1 = tf.keras.layers.Dense(16, activation='relu')
         self.dense2 = tf.keras.layers.Dense(1)
-        self.lstm = tf.keras.layers.LSTM(64, return_sequences=True, return_state=False)
-        self.dense3 = tf.keras.layers.Dense(64)
-        self.dense4 = tf.keras.layers.Dense(1)
+        self.init_hidden_state = tf.Variable(tf.random.truncated_normal([1, self.num_lstm_units], stddev=0.1, dtype=tf.float32))
+        self.lstm = tf.keras.layers.LSTM(self.num_lstm_units, return_sequences=True, return_state=False)
+        self.dropout1 = tf.keras.layers.Dropout(0.3)
+        self.dense3 = tf.keras.layers.Dense(64, activation='relu')
+        self.dropout2 = tf.keras.layers.Dropout(0.15)
+        self.dense4 = tf.keras.layers.Dense(16, activation='relu')
+        self.dropout3 = tf.keras.layers.Dropout(0.05)
+        self.dense5 = tf.keras.layers.Dense(1)
     
 
     def call(self, inputs, initial_state):
@@ -36,10 +43,10 @@ class Model(tf.keras.Model):
 
         inputs = tf.convert_to_tensor(inputs, dtype=tf.float32)
         num_batches = inputs.shape[0]
-        
         fully_connected_output = tf.squeeze(self.dense2(self.dense1(inputs)))
-        lstm_output = self.lstm(tf.reshape(fully_connected_output, [num_batches, self.window_size, 1]), initial_state=initial_state)
-        return self.dense4(self.dense3(lstm_output))
+        batch_initial_hidden_state = tf.repeat(self.init_hidden_state, repeats=num_batches, axis=0)
+        lstm_output = self.lstm(tf.reshape(fully_connected_output, [num_batches, self.window_size, 1]), initial_state=[batch_initial_hidden_state, tf.zeros([num_batches, 64])])
+        return self.dense5(self.dropout3(self.dense4(self.dropout2(self.dense3(self.dropout1(lstm_output))))))
 
 
     def loss(self, predictions, labels):
@@ -63,7 +70,7 @@ def train(model, inputs, initial_state):
     :param model: 
     :param 
     :param 
-    :return: List of losses for every 50th window
+    :return: 
     '''
 
     window_inputs = []
@@ -72,6 +79,7 @@ def train(model, inputs, initial_state):
         window_inputs.append(inputs[idx:idx+model.window_size])
 
     losses = []
+    accuracies = []
 
     for batch_idx in range(0, len(window_inputs) - model.batch_size - 1, model.batch_size):
         batch_inputs = window_inputs[batch_idx:batch_idx+model.batch_size]
@@ -84,8 +92,9 @@ def train(model, inputs, initial_state):
         gradients = tape.gradient(loss, model.trainable_variables)
         model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
         losses.append(loss)
+        accuracies.append(model.accuracy(predictions, batch_labels))
 
-    return tf.convert_to_tensor(losses)
+    return np.mean(losses), np.mean(accuracies)
 
 
 def test(model, test_inputs, initial_state):
@@ -102,14 +111,16 @@ def test(model, test_inputs, initial_state):
     """
 
     accuracies = []
+    total_predictions = 0
 
     for idx in range(0, tf.shape(test_inputs)[0] - model.window_size - 1, model.window_shift):
         window_inputs = tf.expand_dims(test_inputs[idx:idx+model.window_size], axis=0)
         window_labels = tf.expand_dims(np.asarray(test_inputs[idx+1:idx+model.window_size+1], dtype=np.float32)[:, 0:1], axis=0)
         predictions = model(window_inputs, initial_state)
+        total_predictions += tf.size(predictions).numpy()
         accuracies.append(model.accuracy(predictions, window_labels))
         
-    return np.mean(accuracies)
+    return np.mean(accuracies), total_predictions
 
 
 def main():
@@ -141,19 +152,30 @@ def main():
     shuffled_cryptos = cryptos.copy()
 
     # Trains model
-    for epoch in range(10):
-        print("\nEpoch {}/10".format(epoch + 1))
+    for epoch in range(model.num_epochs):
+        print("\nEpoch {}/{}".format(epoch + 1, model.num_epochs))
         random.shuffle(shuffled_cryptos)
         for crypto in shuffled_cryptos:
-            print(" - Training " + crypto)
-            train(model, crypto_train_data[crypto], None)
+            loss, accuracy = train(model, crypto_train_data[crypto], None)
+            print(" - {:<5}\tLoss: {:0.4f}\tAccuracy: {:.2%}".format(crypto, loss, accuracy))
 
     print("\nTest results:")
-    print("\n{:<10} {:<10}".format('Crypto', 'Accuracy'))
+    print("\n{:<10} {:<12} {:<10}".format('Crypto', 'Accuracy', 'P-value'))
+
+    total_test_examples = 0
+    total_correct = 0
     
     for crypto in cryptos:
-        accuracy = test(model, crypto_test_data[crypto], None)
-        print("{:<10} {:<10}".format(crypto, "{:.2%}".format(accuracy)))
+        accuracy, num_examples = test(model, crypto_test_data[crypto], None)
+        correct = accuracy * num_examples
+        total_test_examples += num_examples
+        total_correct += correct
+        p_value = 1 - binom.cdf(correct, num_examples, 0.5)
+        print("{:<10} {:<12} {:<10}".format(crypto, "{:.2%}".format(accuracy), "{:.4f}".format(p_value)))
+
+    overall_accuracy = total_correct / total_test_examples
+    overall_p_value = 1 - binom.cdf(total_correct, total_test_examples, 0.5)
+    print("\nOverall test accuracy: {:.2%} (P-value = {:.4f})".format(overall_accuracy, overall_p_value))
 
 if __name__ == '__main__':
     main()
