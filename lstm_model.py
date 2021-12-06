@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 from preprocess_prices import get_data
+import random
 import os
 
 accs = []
@@ -135,15 +136,19 @@ def main():
         # Initialized model
     model = Model()
 
+    crypto_list = list(crypto_data.keys())
+    random.shuffle(crypto_list)
+
     # Trains model
-    for crypto, data in crypto_data.items():
-        print("Training " + crypto)
-        p = train(model, data, None)
-        print(p)
+    for epoch in range(10):
+        for crypto in crypto_list:
+            print("Training " + crypto)
+            p = train(model, crypto_data[crypto], None)
+            #print(p)
+            print(epoch)
 
     print(tf.math.reduce_mean(accs))
     
-
 
 if __name__ == '__main__':
     main()
