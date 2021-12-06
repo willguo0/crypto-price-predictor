@@ -4,8 +4,6 @@ from preprocess_prices import get_data
 import random
 import os
 
-accs = []
-
 class Model(tf.keras.Model):
     def __init__(self):
         super(Model, self).__init__()
@@ -22,7 +20,7 @@ class Model(tf.keras.Model):
         # Initialize all trainable parameters
         self.dense1 = tf.keras.layers.Dense(16)
         self.dense2 = tf.keras.layers.Dense(1)
-        self.gru = tf.keras.layers.LSTM(64, return_sequences=True, return_state=False)
+        self.lstm = tf.keras.layers.LSTM(64, return_sequences=True, return_state=False)
         self.dense3 = tf.keras.layers.Dense(64)
         self.dense4 = tf.keras.layers.Dense(1)
     
@@ -35,10 +33,13 @@ class Model(tf.keras.Model):
         :param initial_state:
         :return: 
         """
+
+        inputs = tf.convert_to_tensor(inputs, dtype=tf.float32)
+        num_batches = inputs.shape[0]
         
-        fully_connected_output = tf.squeeze(self.dense2(self.dense1(tf.convert_to_tensor(inputs))))
-        gru_output = self.gru(tf.reshape(fully_connected_output, [self.batch_size, self.window_size, 1]), initial_state=initial_state)
-        return self.dense4(self.dense3(gru_output))
+        fully_connected_output = tf.squeeze(self.dense2(self.dense1(inputs)))
+        lstm_output = self.lstm(tf.reshape(fully_connected_output, [num_batches, self.window_size, 1]), initial_state=initial_state)
+        return self.dense4(self.dense3(lstm_output))
 
 
     def loss(self, predictions, labels):
@@ -74,7 +75,7 @@ def train(model, inputs, initial_state):
 
     for batch_idx in range(0, len(window_inputs) - model.batch_size - 1, model.batch_size):
         batch_inputs = window_inputs[batch_idx:batch_idx+model.batch_size]
-        batch_labels = np.asarray(window_inputs[batch_idx+1:batch_idx+model.batch_size+1])[:, :, 0:1]
+        batch_labels = np.asarray(window_inputs[batch_idx+1:batch_idx+model.batch_size+1], dtype=np.float32)[:, :, 0:1]
 
         with tf.GradientTape() as tape:
             predictions = model(batch_inputs, initial_state)
@@ -83,8 +84,6 @@ def train(model, inputs, initial_state):
         gradients = tape.gradient(loss, model.trainable_variables)
         model.optimizer.apply_gradients(zip(gradients, model.trainable_variables))
         losses.append(loss)
-        #print(loss)
-        accs.append(model.accuracy(predictions, batch_labels))
 
     return tf.convert_to_tensor(losses)
 
@@ -105,8 +104,8 @@ def test(model, test_inputs, initial_state):
     accuracies = []
 
     for idx in range(0, tf.shape(test_inputs)[0] - model.window_size - 1, model.window_shift):
-        window_inputs = test_inputs[idx:idx+model.window_size]
-        window_labels = np.asarray(test_inputs[idx+1:idx+model.window_size+1])[:, :, 0:1]
+        window_inputs = tf.expand_dims(test_inputs[idx:idx+model.window_size], axis=0)
+        window_labels = tf.expand_dims(np.asarray(test_inputs[idx+1:idx+model.window_size+1], dtype=np.float32)[:, 0:1], axis=0)
         predictions = model(window_inputs, initial_state)
         accuracies.append(model.accuracy(predictions, window_labels))
         
@@ -121,34 +120,40 @@ def main():
     
     :return: None
     '''
-
-    # Read in CIFAR10 data
-    train_inputs, train_labels = get_data('./data/ada-usd-max.csv')
     
     directory = './data'
-    crypto_data = {}
+    crypto_train_data = {}
+    crypto_test_data = {}
+    cryptos = []
     for filename in os.listdir(directory):
         f = os.path.join(directory, filename)
         # checking if it is a file
         if os.path.isfile(f): 
            data, name = get_data(f)
-           crypto_data[name] = data
+           train_data = data[0:-50]
+           test_data = data[-50:]
+           crypto_train_data[name] = train_data
+           crypto_test_data[name] = test_data
+           cryptos.append(name)
         # Initialized model
     model = Model()
 
-    crypto_list = list(crypto_data.keys())
-    random.shuffle(crypto_list)
+    shuffled_cryptos = cryptos.copy()
 
     # Trains model
     for epoch in range(10):
-        for crypto in crypto_list:
-            print("Training " + crypto)
-            p = train(model, crypto_data[crypto], None)
-            #print(p)
-            print(epoch)
+        print("\nEpoch {}/10".format(epoch + 1))
+        random.shuffle(shuffled_cryptos)
+        for crypto in shuffled_cryptos:
+            print(" - Training " + crypto)
+            train(model, crypto_train_data[crypto], None)
 
-    print(tf.math.reduce_mean(accs))
+    print("\nTest results:")
+    print("\n{:<10} {:<10}".format('Crypto', 'Accuracy'))
     
+    for crypto in cryptos:
+        accuracy = test(model, crypto_test_data[crypto], None)
+        print("{:<10} {:<10}".format(crypto, "{:.2%}".format(accuracy)))
 
 if __name__ == '__main__':
     main()

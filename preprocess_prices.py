@@ -20,7 +20,7 @@ def get_data(data_file):
             market_cap.append(row[2])
             volume.append(row[3])
     data_file = data_file[7:]
-    name = data_file.split("-",1)[0]
+    name = data_file.split("-",1)[0].upper()
     prices = prices[1:]
     market_cap = market_cap[2:]
     volume = volume[1:]
@@ -33,10 +33,10 @@ def get_data(data_file):
     volume_change = []
     for i in range(len(volume) - 1):
         volume_change.append((volume[i + 1] - volume[i])/volume[i])
-    percent_change = np.asarray(percent_change)
-    market_cap = np.asarray(market_cap)
+    percent_change = np.asarray(percent_change, dtype=np.float32)
+    market_cap = np.asarray(market_cap, dtype=np.float32)
     log_market_cap = np.log(market_cap)
-    volume_change = np.asarray(volume_change)
+    volume_change = np.asarray(volume_change, dtype=np.float32)
     return np.column_stack([normalize(percent_change), normalize(log_market_cap), normalize(volume_change)]), name
 
 
