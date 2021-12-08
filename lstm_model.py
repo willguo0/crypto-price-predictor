@@ -28,13 +28,13 @@ class Model(tf.keras.Model):
         self.dropout2 = tf.keras.layers.Dropout(0.1)
         self.dense4 = tf.keras.layers.Dense(128, activation='relu', kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.1))
         self.dropout3 = tf.keras.layers.Dropout(0.05)
+        self.final_layer = tf.keras.layers.Dense(1)
         
         if model_type == 'REGRESSION':
             self.lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=1e-3, decay_steps=512, decay_rate=0.7)
-            self.final_layer = tf.keras.layers.Dense(1)
         else:
             self.lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(initial_learning_rate=1e-2, decay_steps=512, decay_rate=0.8)
-            self.final_layer = tf.keras.layers.Dense(1)
+            
 
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.lr_schedule)
     
