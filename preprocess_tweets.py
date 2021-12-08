@@ -115,7 +115,7 @@ def generate_csvs(handle_list):
 
 def process_csv(curr):
     pd_df = pd.concat(
-        [pd.read_csv("./data/" + curr + ".csv")],
+        [pd.read_csv("./data/twitter-data/" + curr + ".csv")],
         ignore_index=True,
     )
 
