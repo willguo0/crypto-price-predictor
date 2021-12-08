@@ -164,7 +164,7 @@ def main():
     :return: None
     '''
     
-    directory = './data'
+    directory = './data/price-data'
     crypto_train_data = []
     crypto_train_types = []
     crypto_test_data = {}
@@ -185,8 +185,6 @@ def main():
     crypto_train_data = np.row_stack(crypto_train_data)
     crypto_train_types = tf.reshape(crypto_train_types, [-1])
     model = Model(model_type="CLASSIFICATION")
-
-    print(crypto_train_types.shape)
 
     window_train_data = []
 
