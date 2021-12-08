@@ -19,7 +19,7 @@ def get_data(data_file):
             prices.append(row[1])
             market_cap.append(row[2])
             volume.append(row[3])
-    data_file = data_file[7:]
+    data_file = data_file[18:]
     name = data_file.split("-",1)[0].upper()
     prices = prices[1:]
     market_cap = market_cap[2:]

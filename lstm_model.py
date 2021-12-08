@@ -23,9 +23,9 @@ class Model(tf.keras.Model):
         self.dense2 = tf.keras.layers.Dense(1, kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.1))
         self.init_hidden_state = tf.Variable(tf.random.truncated_normal([1, self.num_lstm_units], stddev=0.1, dtype=tf.float32))
         self.lstm = tf.keras.layers.LSTM(self.num_lstm_units, return_sequences=True, return_state=False)
-        self.dropout1 = tf.keras.layers.Dropout(0.15)
+        self.dropout1 = tf.keras.layers.Dropout(0.3)
         self.dense3 = tf.keras.layers.Dense(256, activation='relu', kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.1))
-        self.dropout2 = tf.keras.layers.Dropout(0.1)
+        self.dropout2 = tf.keras.layers.Dropout(0.15)
         self.dense4 = tf.keras.layers.Dense(128, activation='relu', kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.1))
         self.dropout3 = tf.keras.layers.Dropout(0.05)
         self.final_layer = tf.keras.layers.Dense(1)
@@ -72,7 +72,6 @@ class Model(tf.keras.Model):
         if self.model_type == 'CLASSIFICATION':
             tf.keras.losses.mae
             loss += tf.reduce_mean(tf.keras.losses.mae(tf.cast(labels >= 0, dtype=tf.float32), predictions))
-            #tf.reduce_mean((tf.math.abs(tf.reshape(tf.cast(labels >= 0, dtype=tf.float32), [-1]) - tf.reshape(predictions, [-1]))))
             return loss
 
         if ignore_correct_ratio > 0:
