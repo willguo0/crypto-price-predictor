@@ -16,18 +16,18 @@ class Model(tf.keras.Model):
         self.batch_size = 64
         self.num_lstm_units = 128
         self.model_type = model_type
-        self.num_epochs = 10
+        self.num_epochs = 5
 
         # Initialize all trainable parameters
         self.dense1 = tf.keras.layers.Dense(32, activation='relu', kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.1))
         self.dense2 = tf.keras.layers.Dense(1, kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.1))
         self.init_hidden_state = tf.Variable(tf.random.truncated_normal([1, self.num_lstm_units], stddev=0.1, dtype=tf.float32))
         self.lstm = tf.keras.layers.LSTM(self.num_lstm_units, return_sequences=True, return_state=False)
-        self.dropout1 = tf.keras.layers.Dropout(0.3)
+        self.dropout1 = tf.keras.layers.Dropout(0.4)
         self.dense3 = tf.keras.layers.Dense(256, activation='relu', kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.1))
-        self.dropout2 = tf.keras.layers.Dropout(0.15)
+        self.dropout2 = tf.keras.layers.Dropout(0.3)
         self.dense4 = tf.keras.layers.Dense(128, activation='relu', kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.1))
-        self.dropout3 = tf.keras.layers.Dropout(0.05)
+        self.dropout3 = tf.keras.layers.Dropout(0.2)
         self.final_layer = tf.keras.layers.Dense(1)
         
         if model_type == 'REGRESSION':
@@ -173,8 +173,8 @@ def main():
         # checking if it is a file
         if os.path.isfile(f): 
            data, name = get_data(f)
-           train_data = data[:-66]
-           test_data = data[-66:]
+           train_data = data[:-100]
+           test_data = data[-100:]
            crypto_train_data.append(train_data)
            crypto_train_types += [idx] * train_data.shape[0]
            crypto_test_data[name] = test_data
@@ -196,7 +196,7 @@ def main():
     print("Training".center(67))
     print("="*67)
     print()
-    print(" {:<10}|{:<10}|{:<10}|{:<10}|{:<10}|{:<10}".format("Epoch".center(10), "Loss".center(10), "Acc".center(10), "Mean".center(10), "Std".center(10), "LR".center(10)))
+    print(" {:<10}|{:<10}|{:<10}|{:<10}|{:<10}|{:<10}".format("Epoch".center(10), "Loss".center(10), "Accuracy".center(10), "Mean".center(10), "Std".center(10), "LR".center(10)))
     print(" {:<10}|{:<10}|{:<10}|{:<10}|{:<10}|{:<10}".format("-"*10, "-"*10, "-"*10, "-"*10, "-"*10, "-"*10))
 
     # Trains model
