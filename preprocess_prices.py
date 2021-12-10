@@ -41,6 +41,12 @@ def get_data(data_file):
 
 
 def normalize(array):
+    """
+    Normalizes the passed in array.
+
+    :param array: numpy array to be normalized.
+    :return: the normalized array
+    """
     return (array - np.mean(array)) / np.std(array)
 
 # price_change, log_market_cap, volume_change = get_data("./data/ada-usd-max.csv")
