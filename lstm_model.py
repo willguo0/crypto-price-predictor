@@ -5,6 +5,7 @@ from scipy.stats import binom
 import random
 import os
 
+"""LSTM model that trains on cryptocurrency data"""
 class Model(tf.keras.Model):
     def __init__(self, model_type):
         super(Model, self).__init__()
@@ -44,7 +45,7 @@ class Model(tf.keras.Model):
         Runs a forward pass on an input batch of time series data for a cryptocurrency.
         
         :param inputs: shape [window_size, 3]
-        :param initial_state:
+        :param initial_state: initial state of the LSTM, includes twitter data as well as market cap and volume
         :return: 
         """
 
@@ -60,8 +61,16 @@ class Model(tf.keras.Model):
         return self.final_layer(self.dropout3(dense4_output, training=is_training))
 
     def loss(self, predictions, labels, balance_preds=True, func='mse', ignore_correct_ratio=0.5):
+        """
+        Takes in the predicted percent changes, and either takes the mean standard error or mean average error.
+
+        :param inputs: predictions  
+        :return: scalar loss
+
+        """
         assert(func in ['mse', 'mae'])
         assert(ignore_correct_ratio >= 0 and ignore_correct_ratio <= 1)
+        
 
         loss = 0
 
@@ -99,9 +108,9 @@ def train(model, window_inputs, init_cell_state):
     Trains the model on all of the inputs for one epoch.
     
     :param model: 
-    :param 
-    :param 
-    :return: 
+    :param window_inputs:
+    :param init_cell_state:
+    :return: losses, accuracy, mean of predictions, standard deviation of predictions
     '''
 
     losses = []
@@ -130,15 +139,12 @@ def train(model, window_inputs, init_cell_state):
 
 def test(model, test_inputs, init_cell_state):
     """
-    Tests the model on the test inputs and labels. You should NOT randomly 
-    flip images or do any extra preprocessing.
+    Tests the model on the test inputs and labels.
     
-    :param test_inputs: test data (all images to be tested), 
-    shape (num_inputs, width, height, num_channels)
+    :param test_inputs: test data, 
+    :param init_cell_state: initial state to set LSTM,
     :param test_labels: test labels (all corresponding labels),
-    shape (num_labels, num_classes)
-    :return: test accuracy - this should be the average accuracy across
-    all batches
+    :return: test accuracy, total number of predictions made
     """
 
     accuracies = []
@@ -156,9 +162,8 @@ def test(model, test_inputs, init_cell_state):
 
 def main():
     '''
-    Read in CIFAR10 data (limited to 2 classes), initialize your model, and train and 
-    test your model for a number of epochs. We recommend that you train for
-    10 epochs and at most 25 epochs. 
+    Read in crypto price and twitter data, initializes model, and trains and 
+    tests model for a number of epochs.
     
     :return: None
     '''
