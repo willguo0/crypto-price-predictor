@@ -46,10 +46,10 @@ class TweetMiner(object):
     api = False
 
     twitter_keys = {
-        "consumer_key": "X",
-        "consumer_secret": "X",
-        "access_token_key": "X",
-        "access_token_secret": "X",
+        "consumer_key": "3wbLN2CQR7eTElAl13tiQDq0h",
+        "consumer_secret": "Zph6p0pKQCIU3yg4flOzLT6iifHwenHeo1HNJqpMTIaebXEztn",
+        "access_token_key": "1383526576210341889-E272VfPfV3cHMmHvM4jRqDUiNVsxCy",
+        "access_token_secret": "B0lPqD54Y35hkG2XCeBcilWGKH9gIi569oQzpXQk1ojQL",
     }
 
     def __init__(self, keys_dict=twitter_keys, api=api):
@@ -146,7 +146,7 @@ def process_csv(curr):
         ignore_index=True,
     )
 
-    print(f"Number of records loaded for {curr}", pd_df.size)
+    # print(f"Number of records loaded for {curr}", pd_df.size)
     # pd_df[["coin_symbol", "tweet_id", "created_at", "date", "hour"]].to_csv(
     #     f"./data/{curr}.csv", index=False
     # )
@@ -192,7 +192,7 @@ def get_average_sentiment(crypto):
     )
     dataframe["polarity"] = dataframe["processed text"].apply(lambda x: get_sentiment(x))
     average_polarity = dataframe["polarity"].mean()
-    print(dataframe.head(10))
+    # print(dataframe.head(10))
     return average_polarity
 
 handle_list = [
