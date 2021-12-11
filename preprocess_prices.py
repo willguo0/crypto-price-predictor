@@ -10,7 +10,6 @@ def get_data(data_file):
     :param data_file: Path to the training file.
     :return: list of price(percent change), market cap(log scale) and total volume(percent change) and name
     """
-    # TODO: load and concatenate training data from training file.
     with open(data_file, 'r') as csvfile:
         prices = []
         market_cap = []
