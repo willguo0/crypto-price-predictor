@@ -1,5 +1,4 @@
 # crypto-price-predictor
-Deep learning project by William Guo and David Grossman
 <p>
 <strong>Using Word Semantics and Price Trends to Predict Cryptocurrency Prices</strong>
 </p>
