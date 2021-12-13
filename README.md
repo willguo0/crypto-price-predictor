@@ -27,12 +27,6 @@ Our model considers (1) price history and (2) sentiment analysis to make its pre
 </ol>
 <p>
 
-img {
-    float: left;
-    width:  200px;
-    height: 200px;
-    object-fit: cover;
-}
 <img src="images/image1.png" width="" alt="alt_text" title="image_tooltip">
 
 </p>
