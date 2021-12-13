@@ -19,9 +19,6 @@ Deep learning project by William Guo and David Grossman
 Will Guo and David Grossman
 </p>
 <p>
-<strong>Github: </strong><a href="https://github.com/willguo0/crypto-price-predictor">https://github.com/willguo0/crypto-price-predictor</a>
-</p>
-<p>
 <strong><span style="text-decoration:underline;">Introduction</span></strong>:
 </p>
 <p>
